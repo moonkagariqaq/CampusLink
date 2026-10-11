@@ -1,0 +1,29 @@
+CampusLink experimental Windows campus authentication client, 2026-10-09.
+
+Authentication foundation:
+xxmod/EsurfingGo, commit c25e908755ddd56acf51698eee2cb9e19b44029d, MIT.
+https://github.com/xxmod/EsurfingGo
+Copyright (c) 2026 xxmod. License retained in licenses/EsurfingGo-MIT.txt.
+
+Windows ZSM container decoding was adapted into Go from:
+BadGhost520/ESurfingClient-CVersion, src/cipher/algo/windows/win_zsm.c,
+Apache License 2.0.
+https://github.com/BadGhost520/ESurfingClient-CVersion
+License retained in licenses/ESurfingClient-Apache-2.0.txt.
+Changes: Go implementation, bounded decompression, stricter PE bounds checks,
+native Windows algorithm variants and ticket-only compatibility negotiation.
+Downloaded native modules are parsed as data, not loaded or executed.
+
+Additional dependencies and licenses:
+github.com/emmansun/gmsm v0.41.1, MIT
+github.com/google/uuid v1.6.0, BSD-3-Clause
+github.com/ulikunitz/xz v0.5.15, BSD-3-Clause
+Corresponding license texts are included in licenses/.
+
+Modified Go foundation files include main.go, client.go, session.go, iface.go,
+constants.go, network/client.go and network/connectivity.go.
+New code includes Windows interface binding, native algorithm parsing,
+native algorithm variants, interoperability checks and Windows Forms UI.
+The original upstream logs are suppressed because they contain sensitive data.
+
+No user credentials are included in this distribution.

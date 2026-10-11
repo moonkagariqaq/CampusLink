@@ -1,0 +1,13 @@
+*.exe
+*.zip
+*.dat
+*.log
+*.tmp
+.env
+.env.*
+settings.*
+status.json
+artifacts/
+bin/
+obj/
+.vs/
