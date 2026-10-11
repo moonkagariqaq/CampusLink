@@ -1,0 +1,57 @@
+name: Build Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: source/EsurfingGo/go.mod
+          cache-dependency-path: source/EsurfingGo/go.sum
+      - name: Build and test
+        shell: powershell
+        run: ./source/Build.ps1
+      - name: Package
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path release-package | Out-Null
+          Copy-Item CampusLink.exe,README.md,NOTICE.txt -Destination release-package
+          Copy-Item licenses -Destination release-package -Recurse
+          Compress-Archive -Path release-package/* -DestinationPath CampusLink-windows-x64.zip
+          $assetHash = (Get-FileHash CampusLink-windows-x64.zip -Algorithm SHA256).Hash.ToLower()
+          "$assetHash  CampusLink-windows-x64.zip" | Out-File SHA256SUMS.txt -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CampusLink-windows-x64
+          path: |
+            CampusLink-windows-x64.zip
+            SHA256SUMS.txt
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $releaseTag = '${{ github.ref_name }}'
+          $notes = @'
+          Windows 校园网连接工具测试版。下载 CampusLink-windows-x64.zip，解压后运行 CampusLink.exe；认证核心已内嵌，无需安装 Go。
+
+          简化界面、DPAPI 加密记忆账号密码、后台自动认证。首次启用开机自动连接需要管理员确认。
+
+          适用于已验证的广东天翼校园环境，不支持短信开户流程。不自动配置 Clash 或开启热点。未签名，请仅在信任源码和发布来源时运行，不建议关闭系统防护。
+
+          来源和许可证见仓库 README、NOTICE.txt 及压缩包 licenses。发布包不含用户账号密码或私人网络配置。附件 SHA256SUMS.txt 可用于校验下载完整性。
+          '@
+          gh release create $releaseTag CampusLink-windows-x64.zip SHA256SUMS.txt --verify-tag --title "CampusLink $releaseTag · Windows 测试版" --notes $notes --prerelease
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
